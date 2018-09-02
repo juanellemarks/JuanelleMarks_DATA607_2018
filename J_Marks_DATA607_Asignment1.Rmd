@@ -1,0 +1,101 @@
+---
+title: "DATA607_Assignment 1-Loading Data into a data frame"
+author: "Juanelle Marks"
+date: "9/1/2018"
+output: html_document
+---
+
+As data scientists, there are times when we're tasked with taking data in one form and transforming it for easier downstream analysis. In this assignment, some simple transformations will be done  on the mushrooms dataset (taken from). A data frame with a subset of the columns in the original data set will be created. Meaningful column names will be added to replace the abbreviations used in the dataset.
+
+
+####Reading the mushroom dataset into R
+```{r}
+mushroom_dataset<- read.csv(url("https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data"), header = FALSE)
+
+```
+
+
+####A glimpse at the dataset
+```{r}
+head(mushroom_dataset,3)
+```
+
+
+###Current column names
+```{r}
+names(mushroom_dataset)
+```
+
+
+###Subsetting the mushroom dataset
+```{r}
+y<-c(mushroom_dataset[,c(1,6,22,23)])
+mushroom_dataset2<-data.frame(y)
+#head(mushroom_dataset2)
+
+```
+
+
+####Renaming columns in the new dataset
+```{r}
+names(mushroom_dataset2)<-c("class","odor","population", "habitat")
+head(mushroom_dataset2,3)
+```
+
+###Converting abbreviated data into meaningful data
+
+```{r}
+
+#Converting abbreviated data into meaningful data:Class column
+levels(mushroom_dataset2$`class`) <- c(levels(mushroom_dataset2$`class`), c("Poisonous","Edible"))
+mushroom_dataset2$`class`[mushroom_dataset2$`class` == "p"] <- "Poisonous"
+mushroom_dataset2$`class`[mushroom_dataset2$`class` == "e"] <- "Edible"
+
+
+#Converting abbreviated data into meaningful data:Odor column
+levels(mushroom_dataset2$`odor`) <- c(levels(mushroom_dataset2$`odor`), "almond", "anise", "creosote", "fishy", "foul", "musty", "none", "pungent", "spicy")
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` == 'a'] <- 'almond'
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` == 'l'] <- 'anise'
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` == 'c'] <- 'creosote'
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` == 'y'] <- 'fishy'
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` ==  'f'] <- 'foul'
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` ==  'm'] <- 'musty'
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` ==  'n'] <- 'none'
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` ==  'p'] <- 'pungent'
+mushroom_dataset2$`odor`[mushroom_dataset2$`odor` ==  's'] <- 'spicy'
+
+
+#Converting abbreviated data into meaningful data:Population column
+levels(mushroom_dataset2$`population`) <- c(levels(mushroom_dataset2$`population`), c("abundant", "clustered", "numerous", "scattered","several","solitary"))
+mushroom_dataset2$`population`[mushroom_dataset2$`population` ==  'a'] <- "abundant"
+mushroom_dataset2$`population`[mushroom_dataset2$`population` ==  'c'] <- "clustered"
+mushroom_dataset2$`population`[mushroom_dataset2$`population` ==  'n'] <- "numerous"
+mushroom_dataset2$`population`[mushroom_dataset2$`population` ==  "s"] <- "scattered"
+mushroom_dataset2$`population`[mushroom_dataset2$`population` ==  "v"] <- "several"
+mushroom_dataset2$`population`[mushroom_dataset2$`population` ==  "y"] <- "solitary"
+
+
+
+#Converting abbreviated data into meaningful data:Habitat column
+levels(mushroom_dataset2$`habitat`) <- c(levels(mushroom_dataset2$`habitat`), c("Grasses", "Leaves", "Meadows", "Paths","Urban","Waste","Woods"))
+mushroom_dataset2$`habitat`[mushroom_dataset2$`habitat` == "g"] <- "Grasses"
+mushroom_dataset2$`habitat`[mushroom_dataset2$`habitat` == "l"] <- "Leaves"
+mushroom_dataset2$`habitat`[mushroom_dataset2$`habitat` == "m"] <- "Meadows"
+mushroom_dataset2$`habitat`[mushroom_dataset2$`habitat` == "p"] <- "Paths"
+mushroom_dataset2$`habitat`[mushroom_dataset2$`habitat` == "u"] <- "Urban"
+mushroom_dataset2$`habitat`[mushroom_dataset2$`habitat` == "w"] <- "Waste"
+mushroom_dataset2$`habitat`[mushroom_dataset2$`habitat` == "d"] <- "Woods"
+```
+
+
+
+
+#####A glimpse at the tranformed data set
+```{r}
+head(mushroom_dataset2,5)
+```
+
+
+Note about the mushroom dataset:
+This is such a well-known dataset in the data science community that it makes a good dataset to use for comparative benchmarking. For example, if someone was working to build a better decision tree algorithm (or other predictive classifier) to analyze categorical data, this dataset could be useful. (extract taken from assignment question document)
+
