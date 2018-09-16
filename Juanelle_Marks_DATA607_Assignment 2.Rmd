@@ -1,0 +1,54 @@
+---
+title: "DAT607-Assignment2"
+author: "Juanelle Marks"
+date: "9/9/2018"
+output: html_document
+---
+
+###AssignmentQuestion
+Choose six recent popular movies. Ask at least five people that you know (friends, family, classmates, imaginary friends) to rate each of these movie that they have seen on a scale of 1 to 5. Take the results (observations) and store them in a SQL database. Load the information into an R dataframe.
+Your deliverables should include your SQL scripts and your R Markdown code, posted to GitHub.
+
+
+### Data gathering methodology used
+The author created the form  shown below  using google spreadsheet. The form was then printed and given to members of her immediate household to be completed. The data was collected and stored in a database named MoviesTable. The database was created using MySQL workbench.
+
+>![Image of Form](/Users/juanelle/Desktop/MSDS/Data607/Week two/Assignment 2/Screen Shot of form.png)
+
+```{r}
+#load package to enable connection between R and the database
+library(RMySQL)
+```
+
+
+```{r}
+#establish connection between R and database
+conn <- DBI::dbConnect(RMySQL::MySQL(), dbname = "MoviesTable", user="root", password="macisawesome")
+
+# List the name/s of table/s in database.This database has only one table
+dbListTables(conn)
+
+```
+
+
+####Dataframe
+```{r}
+
+#Load data from database table into a dataframe
+rs = dbSendQuery(conn, "select * from Reviewer")
+data = fetch(rs, n=-1)
+data
+```
+
+
+####Data Dictionary
+
+>1. idReviewerTable: index
+2. Reviewer name: first names of persons who completed the form
+3. Black Panther:  integer values ranging from 1 to 5 indicating how many stars the movie was rated by the person.
+4. Oceans 8: integer values ranging from 1 to 5 indicating how many stars the movie was rated by the person.
+5. The Predator:integer values ranging from 1 to 5 indicating how many stars the movie was rated by the person.
+6. Infinity War:integer values ranging from 1 to 5 indicating how many stars the movie was rated by the person.
+7. Dead Pool:integer values ranging from 1 to 5 indicating how many stars the movie was rated by the person.
+8. Mile22:integer values ranging from 1 to 5 indicating how many stars the movie was rated by the person.
+
