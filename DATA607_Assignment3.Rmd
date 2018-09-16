@@ -1,0 +1,155 @@
+---
+title: "DATA607-Assignment3"
+author: "Juanelle Marks"
+date: "9/16/2018"
+output: html_document
+---
+
+```{r}
+library(stringr)
+```
+
+##Question 3
+
+####Part A
+> Use the tools of this chapter to rearrange the vector so that all elements conform to the standard first_name last_name.
+
+```{r}
+raw.data <- "555-1239Moe Szyslak(636) 555-0113Burns, C. Montgomery555
+-6542Rev. Timothy Lovejoy555 8904Ned Flanders636-555-3226Simpson,Homer5553642Dr. Julius Hibbert"
+```
+
+
+```{r}
+name <- unlist(str_extract_all(raw.data, "[[:alpha:]., ]{2,}"))
+name
+```
+
+
+
+```{r}
+# Change order
+name2 <- str_replace_all(name, "(.+)(, .+)$", "\\2 \\1") 
+name2 
+```
+
+```{r}
+# Remove commas
+name3 <- str_replace_all(name2, "," , " ") 
+name3
+```
+
+
+```{r}
+#Remove titles
+no_title <- str_replace(name3, "[[:alpha:]]{2,}\\. ", "")
+no_title 
+```
+
+
+####Part B
+
+>Construct a logical vector indicating whether a character has a title (i.e., Rev. andDr.).
+
+```{r}
+title_Check <- c(str_detect(name, "(^[A-z]{1,}\\. ).*"))
+title_Check <- data.frame(name, title_Check)
+names(title_Check) <- c("Name", "Has Title?")
+title_Check
+```
+
+#####Part C
+
+>Construct a logical vector indicating whether a character has a second name.
+
+```{r}
+secondname_Check <- str_detect(name, " [A-z]{1,}\\. ")
+secondname_Check <- data.frame(name, secondname_Check)
+names(secondname_Check) <- c("Name", "Has Second Name?")
+secondname_Check
+```
+
+##Question 4
+
+#####Part A
+
+>[0-9]+\\$ 
+>Strings that confirm to the above pattern are those that contain a series of numbers from 0 to 9 and ends with the $ sign.
+
+#####Example:
+```{r}
+example1 <- c("Juanelle1978$Anthony", "$123456", "987654321$123", "6789$", "$23sf")
+example1 <- unlist(str_extract_all(example1, pattern = "[0-9]+\\$" ))
+example1
+```
+
+
+#####Part B
+
+ >\\b[a-z]{1,4}\\b
+ > Strings that confirm to the above pattern are those that  matches one to four-character words in the input string ( the four character words words must not contain punctuation marks or digits and must be  lowercase).
+
+#####Example:
+```{r}
+example2 <- c("Timothy", "i am a  boy", "123 abc doh rey me", "891 abcd efghi", "ABC abc XYZ xyz")
+example2 <- str_extract_all(example2, pattern = "\\b[a-z]{1,4}\\b" )
+example2
+```
+
+####Part C
+>.*?\\.txt$
+> Strings that confirm to the above pattern are those that end with .txt. The above pattern is great for checking file types.
+
+#####EXample:
+
+```{r}
+example3<- c("Juanelle.txt", "911.txt",".txtMarks", "1234.txt", "Anthony Marks xyz.txt")
+example3 <- str_extract_all(example3, pattern = ".*?\\.txt$" )
+example3
+```
+
+
+#####Part D
+> \\d{2}/\\d{2}/\\d{4}
+>Strings that confirm to the above pattern are those that begin with two digits  immediately followed by a forward slash then immediately followed by two digits and a forward slash, then immediately followed by four digits. The output resembles a date format. Great for checking for the presence of dates.
+
+#####Example
+```{r}
+example4 <- c("09/12/2018", "ab/cd/ efgh", "09/ab/2018", "111/2/19654")
+example4 <- str_extract_all(example4, pattern = "\\d{2}/\\d{2}/\\d{4}")
+example4
+```
+
+
+#####Part E
+> <(.+?)>.+?</\\1>
+>Strings that confirm to the above pattern are those that confirm to the same  pattern as open and close html tags.
+
+
+#####Example:
+```{r}
+example5<-c("<p> This is a paragraph</p>", "<p> This is a paragraph</z>", "<p> This is a paragraph", "This is a paragraph</p>", "<h1> This is a paragraph</h1>", "123abc")
+example5 <- str_extract_all(example5, pattern = "<(.+?)>.+?</\\1>")
+example5
+```
+
+
+##Question 9
+> The following code hides a secret message. Crack it with R and regular expressions. Hint: Some of the characters are more revealing than others!
+
+>"clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0TanwoUwisdij7Lj8kpf03AT5Idr3coc0bt7yczjatOaootj55t3Nj3ne6c4Sfek.r1w1YwwojigOd6vrfUrbz2.2bkAnbhzgv4R9i05zEcrop.wAgnb.SqoU65fPa1otfb7wEm24k6t3sR9zqe5fy89n6Nd5t9kc4fE905gmc4Rgxo5nhDk!gr"
+
+
+>A message was detected when all uppercase characters were extracted from the code. See below:
+
+```{r}
+code<-"clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0TanwoUwisdij7Lj8kpf03AT5Idr3coc0bt7yczjatOaootj55t3Nj3ne6c4Sfek.r1w1YwwojigOd6vrfUrbz2.2bkAnbhzgv4R9i05zEcrop.wAgnb.SqoU65fPa1otfb7wEm24k6t3sR9zqe5fy89n6Nd5t9kc4fE905gmc4Rgxo5nhDk!gr"
+
+secret_message<-unlist(str_extract_all(code, "[[:upper:].]{1,}"))
+
+secret_message <-  str_replace_all(string =  secret_message, pattern =  "\\.", replacement = " ")
+
+paste(secret_message, collapse = "")
+
+```
+
