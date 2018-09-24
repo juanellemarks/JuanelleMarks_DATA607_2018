@@ -1,0 +1,119 @@
+---
+title: "DATA607-Project 1"
+author: "Juanelle Marks"
+date: "9/23/2018"
+output: html_document
+---
+
+##Project Question
+
+>In this project, you’re given a text file with chess tournament results where the information has some structure. Your job is to create an R Markdown file that generates a .CSV file (that could for example be imported into a SQL database) with the following information for all of the players:
+Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre Chess Rating of Opponents
+For the first player, the information would be:
+Gary Hua, ON, 6.0, 1794, 1605
+1605 was calculated by using the pre-tournament opponents’ ratings of 1436, 1563, 1600, 1610, 1649, 1663, 1716, and dividing by the total number of games played.
+
+
+```{r}
+library(stringr)
+library(knitr)
+library(dplyr)
+
+```
+
+
+###Sourcing Data
+```{r}
+tournamentinfo<-"https://raw.githubusercontent.com/juanellemarks/JuanelleMarks_DATA607_2018/master/tournamentinfo.text"
+
+textFile <- read.csv(tournamentinfo, header = FALSE)
+
+textFile[c(1:10), ]
+```
+
+
+###Data Cleansing
+```{r}
+#remove first four rows as they are unecessary to the solution
+textFile1<-textFile[-c(1:4),]
+head(textFile1,3)
+```
+
+
+```{r}
+#Convert from factor to character
+textFile1 <- as.character(textFile1)
+head(textFile1,3)
+```
+
+
+##Data Manipulation
+```{r}
+#extract rows with player information
+playerInfo<-textFile1[seq(1, length(textFile1), 3)] 
+head(playerInfo,3)
+```
+
+
+```{r}
+#extract rows with rating information
+ratingInfo<-textFile1[seq(2, length(textFile1), 3)]
+head(ratingInfo,3)
+```
+
+
+```{r}
+#remove unwanted characters from rows
+player_id <- as.integer(str_extract(playerInfo, "\\d+"))
+
+playerName <- str_trim(str_extract(playerInfo, "(\\w+\\s){2,3}"))
+
+player_state <- str_extract(ratingInfo, "\\w\\w")
+totalPoints<- as.numeric(str_extract(playerInfo, "\\d.\\d"))
+
+pre_Rating<- as.integer(str_extract(str_extract(ratingInfo, "\\D\\d{3,4}\\D"), "\\d+")) 
+
+opponent <- str_extract_all(str_extract_all(playerInfo, "\\d+\\|"), "\\d+")
+
+```
+
+
+
+```{r}
+opponent_count<- sapply(opponent, length)
+seq.max <- seq_len(max(opponent_count))
+z <- t(sapply(opponent, "[", i = seq.max)) 
+textFile2 <- as.data.frame(z)
+
+
+y <- data.frame(player_id, pre_Rating)
+textFile3 <- textFile2
+textFile3[] <- y$pre_Rating[match(unlist(textFile3), y$player_id)]
+kable(head(textFile3))
+
+#  Finding average pre-Chess rating of opponents
+textFile3$oppAvg <- round(apply(textFile3, 1, mean, na.rm=TRUE))
+kable(head(textFile3))
+```
+
+
+
+```{r}
+final_textFile <- data_frame(player_id, playerName, player_state , totalPoints, pre_Rating, textFile3$oppAvg )
+
+colnames(final_textFile) <-  c("ID", "Player_Name", "Player_State", "Total_Points", "Pre_Match_Rating", "Opponent's_Average")
+
+kable(head(final_textFile, 10))
+```
+
+## Write to CSV File
+```{r}
+write.csv(final_textFile,file="/Users/juanelle/Desktop/MSDS/Data607/Week Three/Project 1/DATA607_ProjectOne_Newtxtfile")
+```
+
+
+
+
+
+
+
