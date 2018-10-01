@@ -1,0 +1,183 @@
+---
+title: "DATA607 Week 5_Assignment"
+author: "Juanelle Marks"
+date: "9/29/2018"
+output: html_document
+---
+##Question
+
+>![Image of Chart](/Users/juanelle/Desktop/MSDS/Data607/Week Five/Image.png)
+
+>The chart above describes arrival delays for two airlines across five destinations. Your task is to:
+(1) Create a .CSV file (or optionally, a MySQL database!) that includes all of the information above. You’re encouraged to use a “wide” structure similar to how the information appears above, so that you can practice tidying and transformations as described below.
+(2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy and transform your data.
+(3) Perform analysis to compare the arrival delays for the two airlines.
+(4) Your code should be in an R Markdown file, posted to rpubs.com, and should include narrative descriptions of your data cleanup work, analysis, and conclusions.
+
+
+
+#Data gathering, tidying and transformation
+
+###Load relevant packages
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(tidyselect)
+library(ggplot2)
+```
+
+
+###Load Data into R
+```{r}
+
+
+flights_data<-read.csv("https://raw.githubusercontent.com/juanellemarks/JuanelleMarks_DATA607_2018/master/flights_data.csv", sep = ",", header = TRUE)
+flights_data
+#class(flights_data)
+
+```
+
+###Remove  NA's
+>There is a row in the data frame which separated information about the two airlines. The cells in this row contained NA. In tidying up the data frame, this row  was removed.
+
+```{r}
+flights_data<-drop_na(flights_data,)
+flights_data
+```
+
+
+###Rename the labels of columns one and two
+>By default, columns one and two were labelled  X and X.1. It is appropriate to rename these labels so as to better reflect the data they 'label'.
+
+```{r}
+names(flights_data)[1]<-"Airline"
+names(flights_data)[2]<-"Flight_Status"
+flights_data
+```
+
+
+
+### Fill in missing airline names
+```{r}
+flights_data$Airline[flights_data$Airline==""]<-c("ALASKA","AM WEST")
+
+flights_data
+```
+
+
+
+###Transform data from wide format to long format
+> Asignment question requires that we compare the delay times of the two airlines in the data frame. The current format of the data frame is ideal for getting a sense of the flight status of each of the two airlines across the five cities. However, it will be difficult to conduct a comparison analysis of the two airline flight delays while the data is in this format. Hence, the data will be transformed to the long format.
+
+```{r}
+flights_data1<- flights_data %>% gather(key = Destination, value= Count, c(3:7))
+flights_data1
+```
+
+
+### Filter to show 'delay' counts only
+
+> Since we are only interested in flight delay status of the two airlines across the five cities, it is appropriate then  to filter out this information from the data frame.
+
+```{r}
+flights_data2<-filter(flights_data1, Flight_Status=="delayed")
+flights_data2
+```
+
+
+***
+
+#Comparisons and Analysis
+
+
+###Convert Count variable to a numeric variable
+
+> In order to perform computational analysis on the Count variable, we need to convert it to numeric.
+
+```{r}
+flights_data2$Count = as.numeric(as.character(flights_data2$Count))
+flights_data2
+```
+
+>With count converted to numeric, we can do a summary in order to get a sense of the delay times irregardless of airline or state. 
+
+```{r}
+summary(flights_data2$Count)
+#sd(flights_data2$Count)
+summarise(flights_data2, mean=mean(Count), sd=sd(Count))
+```
+> From this given data set, it can be seen that that there is an average of 128 flight delays with a standard deviation of  approximately 130.
+
+```{r}
+#ggplot(flights_data2, aes(Count)) + geom_bar(stat="bin", binwidth = 20, fill="steelblue")
+barplot(flights_data2$Count)
+```
+
+
+> The distribution of the  delay counts seem bimodal and somewhat skewed.
+
+
+### To get a sense of  of delays by Alaska airlines across the five states
+
+```{r}
+library(ggplot2)
+Alaska_delays<-filter(flights_data2, Airline=="ALASKA")
+Alaska_delays
+ggplot(Alaska_delays,aes(Destination,Count)) + geom_bar(aes(fill = Airline), position = "dodge", stat = "identity") + 
+  ylab("Count")
+```
+
+>From the graph above it can be observed that the number of delayed flights to Seattle on Alaska airlies was not just 'slightly' larger, but instead 'significantly' larger compared to those to the other four cities. What could be the main contributing factor/s to this observation? To be noted also, is the pattern of flight delay counts to the other cities.There does not appear to  be any significant consistencies among these counts.
+
+### To get a sense of  of delays by AM West airlines across the five states
+```{r}
+AM_West_delays<-filter(flights_data2, Airline=="AM WEST")
+AM_West_delays
+ggplot(AM_West_delays,aes(Destination,Count)) + geom_bar(aes(fill = Airline), position = "dodge", stat = "identity") + 
+  ylab("Count")
+```
+>In comparision, Am West airlines had significantly larger flight delays to Phoenix than to any other state. To be observed also, there is no large difference among the delay times to the other cities on this airline suggesting a consistent pattern of flight delays. 
+
+
+###Comparison of both airlines
+```{r}
+Airlines_Sum <- flights_data2 %>%
+  group_by(Airline) %>%
+  summarise(TotalDelay = sum(Count))
+
+Airlines_Sum
+ggplot(Airlines_Sum) + aes(x= Airline, y= TotalDelay, fill = Airline) + geom_bar(stat="identity", position=position_dodge())
+```
+
+> By observing the diagram above, it can be seen that AM West had the largest  overall delay counts. This could mean that Alaska airlines is the more reliable of the two airlines.
+
+
+###Comparison of count of delay times of both airlines by cities
+```{r}
+ggplot(flights_data2, aes(x = Destination, y = Count, group = Airline, color = Airline, shape = Airline)) + 
+  geom_point(aes(shape = Airline)) + 
+  geom_line() + 
+  labs(x = "Cities", y = "Delay_Counts") + 
+  theme(legend.title=element_blank())
+```
+
+> From observation of the line graph above, it can be see that Alaska airlines has a somewhat lower flight delay count than AM West across four of the five states.
+
+
+#Conclusion
+>Based on the analysis of the data in the dataset used in this assignment, Alaska airlines seems to be a more reliable airline with minimal flight delays, compared to AM West airlines.  Across both airlines there is an average of 128 flight delays to five different cities.This information is important to note if airlines wish to optimise their service and maintain their clientelle (passengers). This information may also be of interest to  non-frequent flyers as it should enable them to be more cognizant of this reality.
+
+>If i am to offer advice on choice of airline (Alaska or AM West) when travelling to the five cities addressed in this dataset, i would  highly recommend Alaska airlines except when there is a need to travel to  Phoenix. In this case AM West is the better choice/recommendation.
+
+
+
+
+
+
+
+
+
+
+
+
