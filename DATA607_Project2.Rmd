@@ -1,0 +1,361 @@
+---
+title: "DATA607_Project Two"
+author: "Juanelle Marks"
+date: "10/7/2018"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: 2
+  highlight: github
+  prettydoc::html_pretty: null
+  theme: cayman
+---
+
+####Project Question
+
+>The goal of this assignment is to give you practice in preparing different datasets for downstream analysis work.
+Your task is to:
+(1) Choose any three of the “wide” datasets identified in the Week 6 Discussion items. (You may use your own dataset; please don’t use my Sample Post dataset, since that was used in your Week 6 assignment!) For each of the three chosen datasets:
+ Create a .CSV file (or optionally, a MySQL database!) that includes all of the information included in the dataset. You’re encouraged to use a “wide” structure similar to how the information appears in the discussion item, so that you can practice tidying and transformations as described below.
+ Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy and transform your data. [Most of your grade will be based on this step!]
+ Perform the analysis requested in the discussion item.
+ Your code should be in an R Markdown file, posted to rpubs.com, and should include narrative descriptions of your data cleanup work, analysis, and conclusions.
+(2) Please include in your homework submission, for each of the three chosen datasets:
+ The URL to the .Rmd file in your GitHub repository, and
+ The URL for your rpubs.com web page.
+
+##Load needed packages
+```{r}
+library(tidyr)
+library(dplyr)
+library(tidyselect)
+library(ggplot2)
+```
+
+
+
+
+#Data Set One which was shared in discussion group by Juanelle Marks
+
+
+##Sourcing the dataset
+```{r}
+ migrants_dataset<-read.csv("https://raw.githubusercontent.com/juanellemarks/JuanelleMarks_DATA607_2018/master/US_Migrant%20data.csv", sep = ",", header = TRUE, stringsAsFactors = FALSE)
+dim(migrants_dataset)
+#tail(migrants_dataset)
+```
+
+>This dataset has 271 obsevations and 26 variable.
+
+
+##Tidying and Transforming the dataset
+
+
+###Subset variables
+
+```{r}
+#remove first row
+migrants_dataset<-migrants_dataset[-c(1),]
+na.omit(migrants_dataset)
+head(migrants_dataset,10)
+```
+
+
+```{r}
+
+#remove columns one, three, four and five as these are not pertient to my analysis
+migrants_datset2<-migrants_dataset[c(2,6:26) ]
+
+#rename columns
+names(migrants_datset2) <- c("Destination_Country","BothSexes_1990", "BothSexes_1995", "BothSexes_2000","BothSexes_2005","BothSexes_2010","BothSexes_2015","BothSexes_2017","Males_1990", "Males_1995","Males_2000","Males_2005","Males_2010","Males_2015","Males_2017","Females_1990","Females_1995","Females_2000","Females_2005","Females_2010","Females_2015","Females_2017")
+
+```
+
+
+###Transform dataset to long format
+```{r}
+try<-migrants_datset2 %>% gather(key = Sex_year, value = Totals, c(2:22))
+dim(try)
+head(try,5)
+
+```
+
+###Separate Sex_year into two separate columns
+```{r}
+try2 <- extract(try, 
+               Sex_year,   
+              into = c("Gender", "Year"), 
+              regex = "(Males|Females|BothSexes)_(1990|2017)")
+
+print(tail(try2,10))
+
+```
+
+###Remove rows where Gender is equal to both sexes
+```{r}
+try3<-filter(try2,Gender!="BothSexes")
+head(try3,10)
+```
+
+####Filter named major regions in the dataset
+```{r}
+try4<-filter(try3,Destination_Country=="AFRICA"|Destination_Country=="ASIA"|Destination_Country=="NORTHERN AMERICA"|Destination_Country=="OCEANIA"|Destination_Country=="South America"|Destination_Country=="EUROPE"|Destination_Country=="LATIN AMERICA AND THE CARIBBEAN")
+head(try4,10)
+```
+
+
+###Spread dataset by gender
+```{r}
+new_migrant_dataset<-spread(try4,Gender,Totals)
+head(new_migrant_dataset,10)
+```
+
+
+###Remove commas from Females and Males so that those vectors can be converted to numeric to allow for computational analysis
+```{r}
+new_migrant_dataset[] <- lapply(new_migrant_dataset, gsub, pattern=',', replacement='')
+head(new_migrant_dataset,10)
+
+```
+
+###Convert columns Females and Males to numeric
+```{r}
+
+new_migrant_dataset$Females<-as.numeric(new_migrant_dataset$Females)
+new_migrant_dataset$Males<-as.numeric(new_migrant_dataset$Males)
+head(new_migrant_dataset,10)
+
+```
+
+##Analysis on data set one:
+
+###Question: What is the proportion of female and male migrants across the selected continents?
+
+```{r}
+migrant_dataset_proportion<-new_migrant_dataset %>% 
+  mutate(Total= Females + Males, Female_Proportion= (round(Females/Total,2)), Male_Proportion=(round(Males/Total,2)))
+migrant_dataset_proportion
+```
+
+
+###Question: What are the summary statistics for this  new data set?
+```{r}
+summary(migrant_dataset_proportion)
+```
+> The minimum count of female migrants during the years 1990 and 2017 collectively is  2139224, whereas the minimum count of male migrants during the years 1990 and 2017 collectively is  2144038. Both years  showed alarge minimum of migrants to the 7 major areas. Noteworthy also, there is a larger number of male migrants than female migrants? across these two years.
+
+
+##Question: Which major area had the largest proportion of of male migrants across both 1990 and 2017?
+```{r}
+ggplot(migrant_dataset_proportion,aes(x= Destination_Country, y = Male_Proportion)) +geom_bar(stat = "identity",aes(fill = Destination_Country))
+```
+
+> The chart above shows that there were  more male migrants to Asia than to the other major areas.
+
+
+##Question: Which major area had the largest proportion of  female migrants across both 1990 and 2017?
+
+```{r}
+ggplot(migrant_dataset_proportion,aes(x= Destination_Country, y = Female_Proportion)) +geom_bar(stat = "identity",aes(fill = Destination_Country))
+```
+> The chart above shows that there were  more female migrants to Europe than to the other major areas.
+
+
+```{r}
+#ggplot(migrant_dataset_proportion,aes(x= Year, y = Male_Proportion)) +geom_bar(stat = "identity",aes(fill = Destination_Country))
+```
+
+
+
+#Dataset Two which was shared in the discussion group by Ravi Itwaru
+
+```{r}
+dataset_two<-read.csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/airline-safety/airline-safety.csv", sep = ",", header = TRUE, stringsAsFactors = FALSE)
+
+dataset_two
+```
+
+
+##Tidying and Transforming the dataset
+```{r}
+dataset_two<-dataset_two %>% gather(key = Safety_Status, value = Totals, c(3:8))
+#head (dataset_two,10)
+
+```
+>> Giving error in R studio: Error in dataset_two %>% gather(key = Safety_Status, value = Totals, c(3:8)) : 
+  could not find function "%>%"...However, sames to working when document is knitted.
+
+#####Remove column two
+```{r}
+#library(dplyr)
+#dataset_two <- select(dataset_two, -avail_seat_km_per_week)
+
+```
+> Was unsuccessful in removing column.Encountered error:"Error in UseMethod("select_") : no applicable method for 'select_' applied to an object of class "c('integer', 'numeric')""
+
+
+#####Spread column, Safety_Status across two columns
+```{r}
+#dataset_two <- extract(dataset_two, 
+               #Safety_Status,   
+            # into = c("Status", "Year"), 
+             # regex = "(incidents|fatal_accidents|fatalities)_(85-89|00_14)")
+```
+
+ Was unsuccessful in being able to spread Safety_Status across two columns.Encountered error:"Error in UseMethod("extract_") : no applicable method for 'extract_' applied to an object of class "c('integer', 'numeric')""
+
+
+
+##Analysis of dataset two.
+
+```{r}
+class(dataset_two)
+```
+# Tidy and transform codes encountered a number of errors and i was unable to address these before publishing this version, due to time constraints. Will review and publish an updated version.
+
+
+
+#Data Set Three shared in the discussion group by Ms. Amanda Arce.
+
+
+###Source data
+
+>CSV file which duplicated the dataset share by Amanad was created and uploaded to my github repo.
+
+```{r}
+ dataset_three<-read.csv("https://raw.githubusercontent.com/juanellemarks/JuanelleMarks_DATA607_2018/master/Amanda%20Arce's%20data%20set.csv", sep = ",", header = TRUE, stringsAsFactors = FALSE)
+
+dataset_three
+```
+
+
+###Tidying and Transforming the dataset
+
+```{r}
+# remove rows with missing values
+dataset_three<-na.omit(dataset_three)
+dataset_three
+```
+
+
+
+```{r}
+#Change  format
+dataset_three<-dataset_three %>% gather(key = Dim, value = Totals, c(3:6))
+dataset_three
+```
+
+
+```{r}
+#Spread by type
+dataset_three_spread<-spread(dataset_three, Type, Totals)
+dataset_three_spread
+```
+
+
+##Analysis
+
+###Question:
+> What are the summary statistics for columns A and B with respect to  the categories of Dim?
+
+```{r}
+
+#Display the max, min, average, standard deviation, median, and interquartile range of A.
+dataset_three_try <- dataset_three_spread  %>% dplyr::group_by(Dim) %>% 
+  dplyr::summarise(max=max(A), 
+                   min=min(A),
+                   avg=mean(A),
+                   sd_A=sd(A),
+                   median=median(A),
+                   IQR=IQR(B))
+dataset_three_try
+```
+
+
+```{r}
+
+#Display the max, min, average, standard deviation, median, and interquartile range of B.
+dataset_three_try <- dataset_three_spread  %>% dplyr::group_by(Dim) %>% 
+  dplyr::summarise(max=max(B), 
+                   min=min(B),
+                   avg=mean(B),
+                   sd_B=sd(B),
+                   median=median(B),
+                   IQR=IQR(B))
+dataset_three_try
+```
+
+
+## What is average  of A and B with respect to year?
+```{r}
+dataset_three_group <- dataset_three_spread %>% group_by(Year) %>% summarise(Mean_Year= round(mean(A, 0)))
+dataset_three_group
+```
+
+```{r}
+dataset_three_group <- dataset_three_spread %>% group_by(Year) %>% summarise(Mean_Year= round(mean(B, 0)))
+dataset_three_group
+```
+
+
+
+### What is the total for each category of Dim, with respect to A and B?
+
+```{r}
+#Total for each value in the Dim column
+A<-dataset_three_spread %>% 
+  group_by(Dim) %>% 
+  summarize(A_Total=sum(A))
+A
+```
+
+
+```{r}
+#Total for each value in the Dim column
+B<-dataset_three_spread %>% 
+  group_by(Dim) %>% 
+  summarize(B_Total=sum(B))
+B
+```
+
+
+###What proportion of the data set was of type, W, X, Y or Z?
+
+```{r}
+#Combine totals of W,X,Y,Z across A,B and C.
+newtable<-merge(x =A, y=B, by ="Dim", all = TRUE)
+newtable
+```
+
+#####Calculate proportions
+```{r}
+#
+dataset_three_mutate<-newtable %>% 
+  mutate(Total= A_Total + B_Total, Proportion= Total/50)
+dataset_three_mutate
+```
+
+
+```{r}
+library(ggplot2)
+ggplot(dataset_three_mutate,aes(x= Dim, y = Proportion)) +geom_bar(stat = "identity",aes(fill = Dim))
+```
+
+> The largest 'type' count across the data set was X.
+
+
+
+
+
+
+
+
+
+
+
+
+
