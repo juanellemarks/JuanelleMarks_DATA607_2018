@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<bookstore>
+	<book>
+		<title lang="en">A Smarter Way to Lear Python</title>
+		<author>Mark Meyers</author>
+		<year>2017</year>
+		<genre>Non-Fiction</genre>
+	</book>
+	<book>
+		<title lang="en">Python ad Algorithmic Thinking for the Complete Beginner</title>
+		<author>Aristides Bouras, Loukia Ainorozidou</author>
+		<year>2015</year>
+		<genre>Non-Fiction</genre>
+	</book>
+	<book>
+		<title lang="en">Learn Python in One Day and Learn  it Well</title>
+		<author>Jamie Chan</author>
+		<year>2017</year>
+		<genre>Non-Fiction</genre>
+	</book>
+</bookstore>
