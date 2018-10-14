@@ -1,0 +1,22 @@
+{
+  "Favourite Books": [
+    {
+      "Title": "A Smarter Way to Learn Python",
+      "Author": "Mark Meyers",
+      "Year": 2017,
+      "Genre": "Non Fiction"
+    },
+    {
+      "Title": "Python and Algorithmic Thinking for the Complete Beginner",
+      "Author": "Aristides Bouras, Loukia Ainorozidou",
+      "Year": 2015,
+      "Genre": "Non Fiction"
+    },
+    {
+      "Title": "Learn Python in One Day and Learn  it Well",
+      "Author": "Jamie Chan",
+      "Year": 2017,
+      "Genre": "Non Fiction"
+    }
+  ]
+}
