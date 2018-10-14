@@ -1,0 +1,24 @@
+﻿{
+	"bookstore": {
+		"book": [
+			{
+				"title": "A Smarter Way to Lear Python",
+				"author": "Mark Meyers",
+				"year": "2017",
+				"genre": "Non-Fiction"
+			},
+			{
+				"title": "Python ad Algorithmic Thinking for the Complete Beginner",
+				"author": "Aristides Bouras, Loukia Ainorozidou",
+				"year": "2015",
+				"genre": "Non-Fiction"
+			},
+			{
+				"title": "Learn Python in One Day and Learn  it Well",
+				"author": "Jamie Chan",
+				"year": "2017",
+				"genre": "Non-Fiction"
+			}
+		]
+	}
+}
